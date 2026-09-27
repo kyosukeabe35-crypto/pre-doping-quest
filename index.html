@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>事前ドーピング指令</title>
+<style>
+  :root {
+    --bg: #0d0f14;
+    --panel: #171a22;
+    --border: #2a2f3a;
+    --accent: #ff5f56;
+    --accent2: #ffd23f;
+    --text: #e8e8ea;
+    --muted: #9aa0ab;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    color: var(--text);
+    font-family: "Hiragino Sans", "Yu Gothic", -apple-system, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+  .app {
+    width: 100%;
+    max-width: 520px;
+  }
+  h1 {
+    font-size: 20px;
+    letter-spacing: 0.05em;
+    text-align: center;
+    margin: 0 0 4px;
+    color: var(--accent2);
+  }
+  .subtitle {
+    text-align: center;
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+  .menu-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: #1e222c;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 16px;
+    border-radius: 10px;
+    font-size: 15px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.1s;
+  }
+  .menu-btn:hover {
+    border-color: var(--accent);
+    transform: translateY(-1px);
+  }
+  .menu-btn:last-child { margin-bottom: 0; }
+  .menu-btn .label { color: var(--accent2); font-weight: bold; margin-right: 8px; }
+  .quest-text {
+    font-size: 16px;
+    line-height: 1.7;
+    border-left: 3px solid var(--accent);
+    padding: 12px 16px;
+    background: #1a1d26;
+    border-radius: 6px;
+    white-space: pre-wrap;
+  }
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+  .btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .btn-done { background: var(--accent2); color: #1a1400; }
+  .btn-skip { background: #3a2020; color: #ffb3b3; border: 1px solid #6b3030; }
+  .result {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .result.success { background: #1c2b1c; color: #b7f0b0; border: 1px solid #2f5a2f; }
+  .result.slack { background: #2b1c1c; color: #f0b0b0; border: 1px solid #5a2f2f; }
+  .back-btn {
+    margin-top: 20px;
+    width: 100%;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #1e222c;
+    color: var(--text);
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  .note {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 24px;
+    text-align: center;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>事前ドーピング指令</h1>
+  <div class="subtitle">先入れクエストシステム</div>
+
+  <div class="panel" id="menu-panel">
+    <button class="menu-btn" onclick="startCalendarFlow()"><span class="label">[1]</span>予定から出撃</button>
+    <button class="menu-btn" onclick="issueQuest('drinking')"><span class="label">[2]</span>今から飲み会</button>
+    <button class="menu-btn" onclick="issueQuest('dining')"><span class="label">[3]</span>今から外食</button>
+  </div>
+
+  <div class="panel" id="calendar-input-panel" style="display:none;">
+    <label style="font-size:13px; color:var(--muted);">これから向かう予定の名前は?</label>
+    <input type="text" id="event-name-input" placeholder="例: 取引先との会食">
+    <button class="menu-btn" style="margin:0;" onclick="submitEventName()">指令を出す</button>
+  </div>
+
+  <div class="panel" id="quest-panel" style="display:none;">
+    <div class="quest-text" id="quest-text"></div>
+    <div class="actions" id="quest-actions">
+      <button class="btn btn-done" onclick="completeQuest(true)">やった</button>
+      <button class="btn btn-skip" onclick="completeQuest(false)">サボる</button>
+    </div>
+    <div class="result" id="result" style="display:none;"></div>
+    <button class="back-btn" onclick="resetToMenu()">メニューに戻る</button>
+  </div>
+
+  <div class="note">ボタンを押すたびに文言はランダムで変わります</div>
+</div>
+
+<script>
+const ITEMS = [
+  "ソイジョイ", "豆腐100g", "サラダチキン", "プロテインバー", "冷奴",
+  "ゆで卵2個", "枝豆(1パック)", "チーズ(individually wrappedの1個)",
+  "こんにゃくゼリー", "野菜ジュース(コップ1杯)"
+];
+
+const DRINKING_QUESTS = [
+  "【緊急クエスト】居酒屋の気配を検知! 店に入る30m手前のコンビニで『{item}』を確保し、胃にブチ込め!",
+  "【警告】このまま無防備で突入すると、ビール1杯目で血糖値がジェットコースターになるぞ。『{item}』で盾を張れ。",
+  "【前哨戦】乾杯の号令がかかる前に、『{item}』を1つ片付けておけ。空腹の状態で酒を入れるのは初心者のやることだ。",
+  "【罠感知】いや待て、逃げるな。『{item}』を先に食え。でないと生ビール3杯目でタガが外れる未来が見える。"
+];
+
+const DINING_OUT_QUESTS = [
+  "【パッシブ発動】今から外食だな? その足で『{item}』を一気食いしてから扉を叩け。さもないと明日の朝に重力が増すぞ。",
+  "【偵察指令】ラーメンの魔力に抗うため、まず『{item}』で腹の中に前衛部隊を送り込んでおけ。",
+  "【緊急クエスト】外食は敵じゃない。だが丸腰で挑むお前が敵だ。『{item}』を装備してから店に入れ。",
+  "【最終警告】大盛りの誘惑に勝つ自信があるなら、それはただの過信だ。『{item}』で保険をかけておけ。"
+];
+
+const CALENDAR_QUESTS = [
+  "【予告クエスト】まもなく『{event}』が始まる。突入前に『{item}』で腹ごしらえ、忘れるなよ。",
+  "【時限指令】『{event}』まであとわずか。『{item}』を仕込んでから向かえ、丸腰の外出は許さん。",
+  "【予定確認】『{event}』、逃げも隠れもできないな? せめて『{item}』くらいは先に食っておけ。"
+];
+
+const SUCCESS_LINES = [
+  "よし、事前バフ付与完了。最高の一杯(とメシ)をエンジョイする資格を得た。",
+  "準備万端だな。今夜はカロリーの罪悪感なしに楽しんでこい。",
+  "完璧な立ち回りだ。血糖値スパイクの矢はすべて盾で受け止めた。存分に食え、飲め。"
+];
+
+const SLACK_LINES = [
+  "あーあ、先手をサボったな。今夜のカロリーの牙城はガラ空きだ……健闘を祈る。",
+  "無防備で突撃、と。まあいい、後で後悔するのはお前だ。",
+  "指令無視か。ドカ食いモンスターがニヤリと笑ったのが見えたぞ。"
+];
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function fillTemplate(template, vars) {
+  return template.replace(/\{(\w+)\}/g, (_, key) => vars[key]);
+}
+
+function showPanel(id) {
+  ["menu-panel", "calendar-input-panel", "quest-panel"].forEach(p => {
+    document.getElementById(p).style.display = (p === id) ? "block" : "none";
+  });
+}
+
+function issueQuest(kind, eventName) {
+  const item = pick(ITEMS);
+  let text;
+  if (kind === "drinking") {
+    text = fillTemplate(pick(DRINKING_QUESTS), { item });
+  } else if (kind === "dining") {
+    text = fillTemplate(pick(DINING_OUT_QUESTS), { item });
+  } else {
+    text = fillTemplate(pick(CALENDAR_QUESTS), { item, event: eventName });
+  }
+  document.getElementById("quest-text").textContent = text;
+  document.getElementById("quest-actions").style.display = "flex";
+  document.getElementById("result").style.display = "none";
+  showPanel("quest-panel");
+}
+
+function startCalendarFlow() {
+  showPanel("calendar-input-panel");
+  document.getElementById("event-name-input").value = "";
+  document.getElementById("event-name-input").focus();
+}
+
+function submitEventName() {
+  const name = document.getElementById("event-name-input").value.trim() || "謎の予定";
+  issueQuest("calendar", name);
+}
+
+function completeQuest(done) {
+  const result = document.getElementById("result");
+  result.style.display = "block";
+  if (done) {
+    result.className = "result success";
+    result.textContent = pick(SUCCESS_LINES);
+  } else {
+    result.className = "result slack";
+    result.textContent = pick(SLACK_LINES);
+  }
+  document.getElementById("quest-actions").style.display = "none";
+}
+
+function resetToMenu() {
+  showPanel("menu-panel");
+}
+</script>
+</body>
+</html>
