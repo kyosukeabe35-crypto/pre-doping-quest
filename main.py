@@ -16,7 +16,9 @@ from datetime import datetime, timedelta
 import quests
 import calendar_integration
 
-EVENTS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "events.json")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+EVENTS_FILE = os.path.join(BASE_DIR, "events.json")
+PROGRESS_FILE = os.path.join(BASE_DIR, "progress.json")
 
 # 予定時刻がこの分数以内に迫っていたら「出撃対象」とみなす
 UPCOMING_WINDOW_MINUTES = 120
@@ -47,17 +49,33 @@ def find_upcoming_events():
     return upcoming
 
 
+def load_progress():
+    if not os.path.exists(PROGRESS_FILE):
+        return {"success_count": 0}
+    with open(PROGRESS_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def save_progress(progress):
+    with open(PROGRESS_FILE, "w", encoding="utf-8") as f:
+        json.dump(progress, f, ensure_ascii=False, indent=2)
+
+
 def print_banner():
+    progress = load_progress()
+    rank = quests.rank_for(progress["success_count"])
     print("=" * 50)
-    print("   事前ドーピング指令 - 先入れクエストシステム")
+    print("   事前ドーピング指令 - 先入れ指令システム")
+    print(f"   称号: {rank}  (ミッション成功 {progress['success_count']}回)")
     print("=" * 50)
 
 
 def print_menu():
     print()
-    print("[1] カレンダーの予定から出撃")
-    print("[2] 【今から飲み会】")
-    print("[3] 【今から外食】")
+    print("[1] 予定から出撃")
+    print("[2] 今から飲み会")
+    print("[3] 今から外食")
+    print("[4] 超直前(もう店にいる)")
     print("[0] 終了")
     print()
 
@@ -74,8 +92,13 @@ def prompt_completion():
     while True:
         answer = input("実行結果を報告せよ [1: やった / 2: サボる] > ").strip()
         if answer == "1":
+            progress = load_progress()
+            progress["success_count"] += 1
+            save_progress(progress)
+            new_rank = quests.rank_for(progress["success_count"])
             print()
             print(quests.success_line())
+            print(f"(称号: {new_rank} / ミッション成功 {progress['success_count']}回)")
             return True
         elif answer == "2":
             print()
@@ -133,6 +156,11 @@ def handle_dining_out():
     issue_quest(quest_text)
 
 
+def handle_last_minute():
+    quest_text = "【超直前指令】" + quests.last_minute_quest()
+    issue_quest(quest_text)
+
+
 def main():
     print_banner()
     while True:
@@ -145,6 +173,8 @@ def main():
             handle_drinking()
         elif choice == "3":
             handle_dining_out()
+        elif choice == "4":
+            handle_last_minute()
         elif choice == "0":
             print("また出撃を待つ。健闘を祈る。")
             break
