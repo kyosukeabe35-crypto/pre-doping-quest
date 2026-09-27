@@ -65,7 +65,7 @@ def print_banner():
     progress = load_progress()
     rank = quests.rank_for(progress["success_count"])
     print("=" * 50)
-    print("   お腹の脂肪の先入れ防衛アプリ")
+    print("   暴飲暴食防止システム:サキタベ")
     print("   腹部脂肪防衛システム起動")
     print(f"   {rank}  (防衛成功 {progress['success_count']}回)")
     print("=" * 50)
