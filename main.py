@@ -65,8 +65,9 @@ def print_banner():
     progress = load_progress()
     rank = quests.rank_for(progress["success_count"])
     print("=" * 50)
-    print("   事前ドーピング指令 - 先入れ指令システム")
-    print(f"   称号: {rank}  (ミッション成功 {progress['success_count']}回)")
+    print("   お腹の脂肪の先入れ防衛アプリ")
+    print("   腹部脂肪防衛システム起動")
+    print(f"   {rank}  (防衛成功 {progress['success_count']}回)")
     print("=" * 50)
 
 
@@ -98,7 +99,7 @@ def prompt_completion():
             new_rank = quests.rank_for(progress["success_count"])
             print()
             print(quests.success_line())
-            print(f"(称号: {new_rank} / ミッション成功 {progress['success_count']}回)")
+            print(f"({new_rank} / 防衛成功 {progress['success_count']}回)")
             return True
         elif answer == "2":
             print()
@@ -157,7 +158,7 @@ def handle_dining_out():
 
 
 def handle_last_minute():
-    quest_text = "【超直前指令】" + quests.last_minute_quest()
+    quest_text = quests.last_minute_quest()
     issue_quest(quest_text)
 
 

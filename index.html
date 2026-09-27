@@ -3,16 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>事前ドーピング指令</title>
+<title>お腹の脂肪の先入れ防衛アプリ</title>
 <style>
   :root {
-    --bg: #0d0f14;
-    --panel: #171a22;
-    --border: #2a2f3a;
-    --accent: #ff5f56;
-    --accent2: #ffd23f;
-    --text: #e8e8ea;
-    --muted: #9aa0ab;
+    --bg: #000000;
+    --panel: #0a0a0a;
+    --border: #4a3510;
+    --accent: #ff6a00;
+    --accent2: #ffb300;
+    --alert: #ff2222;
+    --text: #e8dfc8;
+    --muted: #6b6250;
   }
   * { box-sizing: border-box; }
   body {
@@ -20,62 +21,97 @@
     min-height: 100vh;
     background: var(--bg);
     color: var(--text);
-    font-family: "Hiragino Sans", "Yu Gothic", -apple-system, sans-serif;
+    font-family: "Courier New", "MS Gothic", "Osaka-Mono", monospace;
     display: flex;
     justify-content: center;
-    padding: 24px 16px;
+    padding: 0 0 32px;
+  }
+  .hazard-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background: repeating-linear-gradient(
+      -45deg,
+      var(--accent),
+      var(--accent) 10px,
+      #000 10px,
+      #000 20px
+    );
+    z-index: 10;
   }
   .app {
     width: 100%;
     max-width: 520px;
+    padding: 28px 16px 0;
   }
   h1 {
-    font-size: 20px;
-    letter-spacing: 0.05em;
+    font-size: 18px;
+    letter-spacing: 0.08em;
     text-align: center;
     margin: 0 0 4px;
     color: var(--accent2);
+    text-shadow: 0 0 6px rgba(255,179,0,0.35);
   }
   .subtitle {
     text-align: center;
     color: var(--muted);
-    font-size: 13px;
+    font-size: 12px;
+    letter-spacing: 0.15em;
     margin-bottom: 24px;
+  }
+  .subtitle::before, .subtitle::after {
+    content: "◆";
+    color: var(--accent);
+    margin: 0 6px;
   }
   .panel {
     background: var(--panel);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 0;
     padding: 20px;
     margin-bottom: 16px;
+    position: relative;
   }
+  .panel::before, .panel::after {
+    content: "";
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border: 2px solid var(--accent);
+  }
+  .panel::before { top: -1px; left: -1px; border-right: none; border-bottom: none; }
+  .panel::after { bottom: -1px; right: -1px; border-left: none; border-top: none; }
   .menu-btn {
     display: block;
     width: 100%;
     text-align: left;
-    background: #1e222c;
+    background: #111;
     border: 1px solid var(--border);
     color: var(--text);
     padding: 16px;
-    border-radius: 10px;
-    font-size: 15px;
+    border-radius: 0;
+    font-size: 14px;
+    font-family: inherit;
+    letter-spacing: 0.03em;
     margin-bottom: 12px;
     cursor: pointer;
-    transition: border-color 0.15s, transform 0.1s;
+    transition: border-color 0.15s, box-shadow 0.15s;
   }
   .menu-btn:hover {
     border-color: var(--accent);
-    transform: translateY(-1px);
+    box-shadow: 0 0 8px rgba(255,106,0,0.4) inset;
   }
   .menu-btn:last-child { margin-bottom: 0; }
-  .menu-btn .label { color: var(--accent2); font-weight: bold; margin-right: 8px; }
+  .menu-btn .label { color: var(--accent); font-weight: bold; margin-right: 8px; }
   .quest-text {
-    font-size: 16px;
-    line-height: 1.7;
-    border-left: 3px solid var(--accent);
+    font-size: 15px;
+    line-height: 1.8;
+    border-left: 3px solid var(--alert);
     padding: 12px 16px;
-    background: #1a1d26;
-    border-radius: 6px;
+    background: #140a0a;
+    border-radius: 0;
     white-space: pre-wrap;
   }
   .actions {
@@ -86,23 +122,27 @@
   .btn {
     flex: 1;
     padding: 12px;
-    border-radius: 8px;
-    border: none;
-    font-size: 14px;
+    border-radius: 0;
+    border: 1px solid var(--border);
+    font-family: inherit;
+    font-size: 13px;
+    letter-spacing: 0.1em;
     font-weight: bold;
     cursor: pointer;
   }
-  .btn-done { background: var(--accent2); color: #1a1400; }
-  .btn-skip { background: #3a2020; color: #ffb3b3; border: 1px solid #6b3030; }
+  .btn-done { background: var(--accent2); color: #1a0f00; border-color: var(--accent2); }
+  .btn-skip { background: #1a0000; color: #ff8888; border-color: #7a1a1a; }
   .result {
     margin-top: 16px;
     padding: 14px 16px;
-    border-radius: 8px;
-    font-size: 15px;
-    line-height: 1.6;
+    border-radius: 0;
+    font-size: 14px;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    border: 1px solid;
   }
-  .result.success { background: #1c2b1c; color: #b7f0b0; border: 1px solid #2f5a2f; }
-  .result.slack { background: #2b1c1c; color: #f0b0b0; border: 1px solid #5a2f2f; }
+  .result.success { background: #0a1408; color: #9dffb0; border-color: #2f5a2f; }
+  .result.slack { background: #140505; color: #ff9d9d; border-color: #7a2f2f; }
   .back-btn {
     margin-top: 20px;
     width: 100%;
@@ -110,41 +150,45 @@
     background: transparent;
     border: 1px solid var(--border);
     color: var(--muted);
-    border-radius: 8px;
+    font-family: inherit;
+    letter-spacing: 0.1em;
+    border-radius: 0;
     cursor: pointer;
   }
   input[type="text"] {
     width: 100%;
     padding: 10px;
-    border-radius: 8px;
+    border-radius: 0;
     border: 1px solid var(--border);
-    background: #1e222c;
+    background: #111;
     color: var(--text);
+    font-family: inherit;
     font-size: 14px;
     margin-bottom: 10px;
   }
   .note {
     color: var(--muted);
-    font-size: 12px;
+    font-size: 11px;
     margin-top: 24px;
     text-align: center;
     line-height: 1.6;
+    letter-spacing: 0.05em;
   }
   .dashboard {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #1a1d26;
-    border: 1px solid var(--border);
-    border-radius: 10px;
+    background: #111;
+    border: 1px solid var(--accent);
     padding: 12px 16px;
     margin-bottom: 16px;
-    font-size: 13px;
+    font-size: 12px;
   }
   .dashboard .rank {
     color: var(--accent2);
     font-weight: bold;
-    font-size: 14px;
+    font-size: 13px;
+    letter-spacing: 0.05em;
   }
   .dashboard .count {
     color: var(--muted);
@@ -152,13 +196,14 @@
 </style>
 </head>
 <body>
+<div class="hazard-bar"></div>
 <div class="app">
-  <h1>事前ドーピング指令</h1>
-  <div class="subtitle">先入れ指令システム</div>
+  <h1>お腹の脂肪の先入れ防衛アプリ</h1>
+  <div class="subtitle">腹部脂肪防衛システム起動</div>
 
   <div class="dashboard">
-    <span class="rank" id="rank-label">新兵</span>
-    <span class="count" id="count-label">ミッション成功 0回</span>
+    <span class="rank" id="rank-label">同調率 0% ― 未起動</span>
+    <span class="count" id="count-label">防衛成功 0回</span>
   </div>
 
   <div class="panel" id="menu-panel">
@@ -169,7 +214,7 @@
   </div>
 
   <div class="panel" id="calendar-input-panel" style="display:none;">
-    <label style="font-size:13px; color:var(--muted);">これから向かう予定の名前は?</label>
+    <label style="font-size:12px; color:var(--muted); letter-spacing:0.05em;">これから向かう予定の名前は?</label>
     <input type="text" id="event-name-input" placeholder="例: 取引先との会食">
     <button class="menu-btn" style="margin:0;" onclick="submitEventName()">指令を出す</button>
   </div>
@@ -184,7 +229,7 @@
     <button class="back-btn" onclick="resetToMenu()">メニューに戻る</button>
   </div>
 
-  <div class="note">ボタンを押すたびに文言はランダムで変わります</div>
+  <div class="note">ボタンを押すたびに指令内容はランダムで変わります</div>
 </div>
 
 <script>
@@ -210,13 +255,13 @@ const LAST_MINUTE_MISSIONS = [
 ];
 
 const DRINKING_MISSIONS = [
-  "【緊急指令】居酒屋の気配を検知! {store}の『{item}』を{action}。血糖値の暴走を阻止せよ。",
-  "【出撃前補給】乾杯の号令がかかる前に、{store}で『{item}』を確保、{action}。",
-  "【警報】丸腰で突入すれば、ビール1杯目で血糖値がジェットコースターになるぞ。{store}の『{item}』を{action}。"
+  "【警戒レベル1】腹部脂肪反応を検知。{store}の『{item}』を{action}。血糖値の暴走を阻止せよ。",
+  "【第一種防衛態勢】乾杯の号令がかかる前に、{store}で『{item}』を確保、{action}。",
+  "【警報】丸腰で突入すれば、ビール1杯目で血糖値が制御不能になるぞ。{store}の『{item}』を{action}。"
 ];
 
 const DINING_MISSIONS = [
-  "【単独任務】今から外食だな? {store}で『{item}』を確保し、{action}。",
+  "【単独出撃任務】今から外食だな? {store}で『{item}』を確保し、{action}。",
   "【偵察指令】ラーメンの誘惑に対抗するため、{store}の『{item}』を{action}。",
   "【最終警告】大盛りに挑む前に、{store}の『{item}』を{action}。"
 ];
@@ -224,29 +269,29 @@ const DINING_MISSIONS = [
 const CALENDAR_MISSIONS = [
   "【時限指令】『{event}』開始まで秒読みだ。{store}で『{item}』を確保、{action}。",
   "【予告指令】まもなく『{event}』が始まる。突入前に{store}の『{item}』を{action}。",
-  "【予定確認】『{event}』、逃げも隠れもできないな? せめて{store}で『{item}』を{action}。"
+  "【予定確認】『{event}』、回避は不可能だ。せめて{store}で『{item}』を{action}。"
 ];
 
 const SUCCESS_LINES = [
-  "ナイス前線基地補給! これで血糖値の暴走は防いだ。",
-  "ミッション完了! 今日のアルコール吸収力、50%ダウンだ(※イメージです)。",
-  "補給完了、部隊は万全だ。心置きなく前線(飲み会)へ向かえ。"
+  "防衛成功。腹部脂肪の増殖係数を抑制した。",
+  "任務完了。本日のアルコール吸収係数、50%減少だ(※イメージです)。",
+  "防衛システム安定。心置きなく前線(飲み会)へ向かえ。"
 ];
 
 const SLACK_LINES = [
   "まあそんな日もある。せめて1杯目はハイボールにしておけ。",
-  "無念の戦死……明日の朝、水1Lで回復を図れ。",
-  "補給なしの突撃か。健闘を祈るが、被害担当は自分自身だぞ。"
+  "防衛失敗……明日の朝、水1Lで回復を図れ。",
+  "無防備な突入か。健闘を祈るが、被害担当は自分自身だぞ。"
 ];
 
 const RANKS = [
-  { threshold: 10, name: "鉄壁の胃袋" },
-  { threshold: 4, name: "血糖値ディフェンダー" },
-  { threshold: 1, name: "見習いガードマン" },
-  { threshold: 0, name: "新兵" }
+  { threshold: 10, label: "同調率 100% ― 完全防衛態勢" },
+  { threshold: 4, label: "同調率 65% ― 防衛安定" },
+  { threshold: 1, label: "同調率 30% ― 初期起動" },
+  { threshold: 0, label: "同調率 0% ― 未起動" }
 ];
 
-const PROGRESS_KEY = "preDopingSuccessCount";
+const PROGRESS_KEY = "abFatDefenseSuccessCount";
 
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
@@ -261,9 +306,9 @@ function buildMission(templateList, extra) {
 
 function rankFor(count) {
   for (const r of RANKS) {
-    if (count >= r.threshold) return r.name;
+    if (count >= r.threshold) return r.label;
   }
-  return RANKS[RANKS.length - 1].name;
+  return RANKS[RANKS.length - 1].label;
 }
 
 function loadSuccessCount() {
@@ -285,7 +330,7 @@ function saveSuccessCount(count) {
 function refreshDashboard() {
   const count = loadSuccessCount();
   document.getElementById("rank-label").textContent = rankFor(count);
-  document.getElementById("count-label").textContent = `ミッション成功 ${count}回`;
+  document.getElementById("count-label").textContent = `防衛成功 ${count}回`;
 }
 
 function showPanel(id) {
@@ -301,7 +346,7 @@ function issueQuest(kind, eventName) {
   } else if (kind === "dining") {
     text = buildMission(DINING_MISSIONS);
   } else if (kind === "lastMinute") {
-    text = "【超直前指令】" + pick(LAST_MINUTE_MISSIONS);
+    text = "【接近戦モード】" + pick(LAST_MINUTE_MISSIONS);
   } else {
     text = buildMission(CALENDAR_MISSIONS, { event: eventName });
   }
@@ -330,7 +375,7 @@ function completeQuest(done) {
     saveSuccessCount(count);
     refreshDashboard();
     result.className = "result success";
-    result.textContent = `${pick(SUCCESS_LINES)}\n(称号: ${rankFor(count)} / ミッション成功 ${count}回)`;
+    result.textContent = `${pick(SUCCESS_LINES)}\n(${rankFor(count)} / 防衛成功 ${count}回)`;
   } else {
     result.className = "result slack";
     result.textContent = pick(SLACK_LINES);
